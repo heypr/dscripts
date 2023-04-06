@@ -5,21 +5,20 @@ chatcolor_handler:
     on player chats bukkit_priority:LOWEST:
     - determine passively cancelled
 
-    - define prefix <player.chat_prefix.parse_color>
+    - define prefix <player.chat_prefix.parse_color.if_null[]>
     - define name <player.name>
     - define recipients <context.recipients>
-    - define color <player.flag[color]>
+    - define color <player.flag[chatcolor]>
     - define message <context.message>
-
 
     - if <[color]> != rainbow:
       - narrate "<[prefix]><[name]>: <[color]><[message]>" targets:<[recipients]>
     - else:
-      - narrate "<[prefix]><[name]>: <proc[chatcolor_rainbow].context[<[message]>]>" targets:<[recipients]>
+      - narrate "<[prefix]><[name]>: <[message].hex_rainbow>" targets:<[recipients]>
 
+    after player joins flagged:!chatcolor:
+    - flag <player> chatcolor:<&color[white]>
 
-    after player logs in flagged:!color:
-    - flag <player> color:<&color[<color[white]>]>
 
 
 chatcolor_command:
@@ -30,47 +29,22 @@ chatcolor_command:
   usage: /chatcolor [color]
   aliases:
   - cc
-  permission: chatcolor.menu
+  permission: chatcolor.command
   tab completions:
-    1: <proc[chatcolor_tab]>
+    1: <util.color_names.include[rainbow].exclude[transparent].filter_tag[<player.has_permission[chatcolor.<[filter_value]>]>].include[reset]>
   script:
-  - define valid_colors <list[white|silver|gray|black|red|maroon|yellow|olive|lime|green|aqua|teal|blue|navy|fuchsia|purple|orange|rainbow]>
+  - define valid_colors <util.color_names.include[rainbow|reset].exclude[transparent]>
+
   - if <context.args.is_empty> || !<context.args.contains_any[<[valid_colors]>]>:
-    - narrate "<red>Invalid arguments."
-  - else if !<player.has_permission[chatcolor.<context.args.first>]>:
-    - narrate "<red>No permission."
-  - else if <context.args.contains_any[rainbow]>:
-    - narrate "<green>Chat color successfully set to <&1>r<&2>a<&3>i<&4>n<&5>b<&6>o<&7>w<&a>!"
-    - flag <player> color:rainbow
+    - narrate "<&[error]>Invalid arguments."
+  - else if !<player.has_permission[chatcolor.<context.args.first>]> && <context.args.first> != reset:
+    - narrate "<&[error]>No permission."
+  - else if <context.args.first> == reset:
+    - flag <player> chatcolor:<&color[white]>
+    - narrate "<&a>Chat color reset to <&f>white<&a>!"
+  - else if <context.args.first> == rainbow:
+    - narrate "<&a>Chat color successfully set to <&1>r<&2>a<&3>i<&4>n<&5>b<&6>o<&7>w<&a>!"
+    - flag <player> chatcolor:rainbow
   - else:
-    - narrate "<green>Chat color successfully set to <&color[<color[<context.args.first>]>]><context.args.first><green>!"
-    - flag <player> color:<&color[<color[<context.args.first>]>]>
-    - stop
-
-
-
-chatcolor_tab:
-    type: procedure
-    debug: false
-    script:
-    - define valid_colors <list[white|silver|gray|black|red|maroon|yellow|olive|lime|green|aqua|teal|blue|navy|fuchsia|purple|orange|rainbow]>
-    - foreach <[valid_colors]>:
-      - if <player.has_permission[chatcolor.<[value]>]>:
-        - define list:->:<[value]>
-    - determine <[list]>
-
-
-
-chatcolor_rainbow:
-    type: procedure
-    debug: false
-    definitions: message
-    script:
-    - define valid_colors <valid_colors.data_key[colors]>
-    - foreach <[message].to_list> as:letter:
-      - define final_message:->:<&color[<color[<[valid_colors].random>]>]><[letter]>
-    - determine <[final_message].unseparated>
-
-valid_colors:
-    type: data
-    colors: <list[white|silver|gray|black|red|maroon|yellow|olive|lime|green|aqua|teal|blue|navy|fuchsia|purple|orange]>
+    - narrate "<&a>Chat color successfully set to <&color[<context.args.first>]><context.args.first><&a>!"
+    - flag <player> chatcolor:<&color[<context.args.first>]>
