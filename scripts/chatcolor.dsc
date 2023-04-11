@@ -3,6 +3,8 @@ chatcolor_handler:
   debug: false
   events:
     on player chats bukkit_priority:LOWEST:
+    - if <player.has_permission[staffchat]> && <player.has_flag[staffchat]>:
+      - stop
     - determine passively cancelled
 
     - define prefix <player.chat_prefix.parse_color.if_null[]>
@@ -31,9 +33,9 @@ chatcolor_command:
   - cc
   permission: chatcolor.command
   tab completions:
-    1: <util.color_names.include[rainbow].exclude[transparent].filter_tag[<player.has_permission[chatcolor.<[filter_value]>]>].include[reset]>
+    1: <util.color_names.include[rainbow|gold].exclude[transparent].filter_tag[<player.has_permission[chatcolor.<[filter_value]>]>].include[reset]>
   script:
-  - define valid_colors <util.color_names.include[rainbow|reset].exclude[transparent]>
+  - define valid_colors <util.color_names.include[rainbow|reset|gold].exclude[transparent]>
 
   - if <context.args.is_empty> || !<context.args.contains_any[<[valid_colors]>]>:
     - narrate "<&[error]>Invalid arguments."
@@ -45,6 +47,9 @@ chatcolor_command:
   - else if <context.args.first> == rainbow:
     - narrate "<&a>Chat color successfully set to <&1>r<&2>a<&3>i<&4>n<&5>b<&6>o<&7>w<&a>!"
     - flag <player> chatcolor:rainbow
+  - else if <context.args.first> == gold:
+    - narrate "<&a>Chat color successfully set to <&6>gold<&a>!"
+    - flag <player> chatcolor:<&color[gold]>
   - else:
-    - narrate "<&a>Chat color successfully set to <&color[<context.args.first>]><context.args.first><&a>!"
-    - flag <player> chatcolor:<&color[<context.args.first>]>
+    - narrate "<&a>Chat color successfully set to <&color[<color[<context.args.first>]>]><context.args.first><&a>!"
+    - flag <player> chatcolor:<&color[<color[<context.args.first>]>]>
