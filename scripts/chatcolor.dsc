@@ -36,7 +36,6 @@ chatcolor_command:
   script:
   - define valid_colors <util.color_names.include[rainbow|reset|gold|hex].exclude[transparent]>
   - define color <context.args.first.if_null[<empty>]>
-  - define hex <context.args.get[2].if_null[<empty>]>
 
   - if <context.args.is_empty> || !<context.args.contains_any[<[valid_colors]>]>:
     - narrate "<&[error]>Invalid arguments."
@@ -56,6 +55,7 @@ chatcolor_command:
       - narrate "<&a>Chat color successfully set to <&6>gold<&a>!"
       - flag <player> chatcolor:<&color[gold]>
     - case hex:
+      - define hex <context.args.get[2].if_null[<empty>]>
       - if <[hex].regex_matches[#(?:[0-9a-fA-F]{6}){1,2}]>:
         - narrate "<&a>Chat color successfully set to <&color[<[hex]>]><[hex].to_lowercase><&a>!"
         - flag <player> chatcolor:<&color[<color[<[hex]>]>]>
